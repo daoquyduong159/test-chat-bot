@@ -29,14 +29,26 @@
   <script>
     const chatbox = document.getElementById('chatbox');
 
-    // 🔹 FAQ tiếng Việt
-    const faq = {
-      "bạn tên gì?": "Mình là SimpleBot.",
-      "ai đã tạo ra bạn?": "Mình được tạo bởi Snoopy.",
-      "bạn có thể làm gì?": "Mình có thể trả lời nhanh các câu hỏi thường gặp, hoặc hỏi AI khi câu hỏi phức tạp.",
-      "xin chào": "Chào bạn! Mình có thể giúp gì cho bạn?",
-      "tạm biệt": "Tạm biệt! Chúc bạn một ngày tốt lành!"
-    };
+    // 🔹 FAQ với danh sách từ khóa
+    const faqKeywords = [
+      { keywords: ["bạn tên gì", "bạn là ai", "tên của bạn"], answer: "Mình là SimpleBot." },
+      { keywords: ["ai tạo", "ai làm ra", "người phát triển"], answer: "Mình được tạo bởi Snoopy." },
+      { keywords: ["bạn làm gì", "có thể làm gì", "nhiệm vụ"], answer: "Mình có thể trả lời FAQ hoặc dùng AI để hỗ trợ bạn." },
+      { keywords: ["xin chào", "hello", "chào bạn"], answer: "Chào bạn! Rất vui được giúp bạn." },
+      { keywords: ["tạm biệt", "bye", "hẹn gặp lại"], answer: "Tạm biệt! Chúc bạn một ngày tốt lành!" }
+    ];
+
+    function findFAQ(userText) {
+      const lowerText = userText.toLowerCase();
+      for (const item of faqKeywords) {
+        for (const key of item.keywords) {
+          if (lowerText.includes(key)) {
+            return item.answer;
+          }
+        }
+      }
+      return null;
+    }
 
     async function sendMessage() {
       const input = document.getElementById('userInput');
@@ -46,11 +58,10 @@
       addMessage('user', userText);
       input.value = '';
 
-      const lowerText = userText.toLowerCase();
-
-      // Trả lời từ FAQ trước
-      if (faq[lowerText]) {
-        addMessage('bot', faq[lowerText]);
+      // Check trong FAQ trước
+      const answer = findFAQ(userText);
+      if (answer) {
+        addMessage('bot', answer);
         return;
       }
 
@@ -61,7 +72,7 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer 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" // 👈 dán key của bạn vào đây
+            "Authorization": "Bearer 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" // 👈 dán API key của bạn vào đây
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
