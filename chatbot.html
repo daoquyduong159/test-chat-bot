@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Simple FAQ Chatbot</title>
+  <title>OpenAI Chatbot</title>
   <style>
     body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding: 30px; }
     .chat-container { width: 350px; }
@@ -18,7 +18,7 @@
 </head>
 <body>
   <div class="chat-container">
-    <h3>Simple Chatbot</h3>
+    <h3>AI Chatbot</h3>
     <div id="chatbox" class="chatbox"></div>
     <div class="input-row">
       <input type="text" id="userInput" placeholder="Type a message..." />
@@ -29,27 +29,32 @@
   <script>
     const chatbox = document.getElementById('chatbox');
 
-    // 🔹 FAQ knowledge base (edit this to "train" your bot)
-    const faq = {
-      "what is your name?": "I am SimpleBot.",
-      "who created you?": "I was created by Snoopy.",
-      "what can you do?": "I can answer simple FAQ questions.",
-      "hello": "Hi there! How can I help you?",
-      "bye": "Goodbye! Have a great day!"
-    };
-
-    function sendMessage() {
+    async function sendMessage() {
       const input = document.getElementById('userInput');
-      const userText = input.value.toLowerCase().trim();
+      const userText = input.value.trim();
       if (!userText) return;
 
-      addMessage('user', input.value);
+      addMessage('user', userText);
       input.value = '';
 
-      if (faq[userText]) {
-        addMessage('bot', faq[userText]);
-      } else {
-        addMessage('bot', "Sorry, I only know some FAQ answers for now.");
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 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" // 👈 put your key here
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: userText }]
+          })
+        });
+
+        const data = await response.json();
+        const reply = data.choices?.[0]?.message?.content || "No reply.";
+        addMessage('bot', reply);
+      } catch (err) {
+        addMessage('bot', "Error: " + err.message);
       }
     }
 
