@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>AI + FAQ Chatbot</title>
+  <title>Chatbot tiếng Việt</title>
   <style>
     body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding: 30px; }
     .chat-container { width: 350px; }
@@ -18,24 +18,24 @@
 </head>
 <body>
   <div class="chat-container">
-    <h3>AI + FAQ Chatbot</h3>
+    <h3>Chatbot tiếng Việt</h3>
     <div id="chatbox" class="chatbox"></div>
     <div class="input-row">
-      <input type="text" id="userInput" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
+      <input type="text" id="userInput" placeholder="Nhập tin nhắn..." />
+      <button onclick="sendMessage()">Gửi</button>
     </div>
   </div>
 
   <script>
     const chatbox = document.getElementById('chatbox');
 
-    // 🔹 FAQ knowledge base
+    // 🔹 FAQ tiếng Việt
     const faq = {
-      "what is your name?": "I am SimpleBot.",
-      "who created you?": "I was created by Snoopy.",
-      "what can you do?": "I can answer FAQ instantly or ask AI for harder questions.",
-      "hello": "Hi there! How can I help you?",
-      "bye": "Goodbye! Have a great day!"
+      "bạn tên gì?": "Mình là SimpleBot.",
+      "ai đã tạo ra bạn?": "Mình được tạo bởi Snoopy.",
+      "bạn có thể làm gì?": "Mình có thể trả lời nhanh các câu hỏi thường gặp, hoặc hỏi AI khi câu hỏi phức tạp.",
+      "xin chào": "Chào bạn! Mình có thể giúp gì cho bạn?",
+      "tạm biệt": "Tạm biệt! Chúc bạn một ngày tốt lành!"
     };
 
     async function sendMessage() {
@@ -48,39 +48,42 @@
 
       const lowerText = userText.toLowerCase();
 
-      // Check FAQ first
+      // Trả lời từ FAQ trước
       if (faq[lowerText]) {
         addMessage('bot', faq[lowerText]);
         return;
       }
 
-      // Otherwise → call OpenAI
-      addMessage('bot', "🤔 Let me think...");
+      // Nếu không có trong FAQ → gọi OpenAI
+      addMessage('bot', "🤔 Đang suy nghĩ...");
       try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer sk-proj-PASTE-YOUR-KEY-HERE" // 👈 dán key của bạn vào đây
+            "Authorization": "Bearer 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" // 👈 dán key của bạn vào đây
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
-            messages: [{ role: "user", content: userText }]
+            messages: [
+              { role: "system", content: "Bạn là chatbot thân thiện, luôn trả lời bằng tiếng Việt." },
+              { role: "user", content: userText }
+            ]
           })
         });
 
         const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content || "No reply.";
+        const reply = data.choices?.[0]?.message?.content || "Xin lỗi, mình chưa có câu trả lời.";
         replaceLastBotMessage(reply);
       } catch (err) {
-        replaceLastBotMessage("Error: " + err.message);
+        replaceLastBotMessage("Lỗi: " + err.message);
       }
     }
 
     function addMessage(sender, text) {
       const msg = document.createElement('div');
       msg.className = 'message ' + sender;
-      msg.textContent = (sender === 'user' ? 'You: ' : 'Bot: ') + text;
+      msg.textContent = (sender === 'user' ? 'Bạn: ' : 'Bot: ') + text;
       chatbox.appendChild(msg);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
