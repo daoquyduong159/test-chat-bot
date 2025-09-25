@@ -26,9 +26,9 @@
 
     // Simple FAQ dictionary (all lowercase keys!)
     const faq = {
-      "Bạn tên là gì?": "Tôi là chatbot thử nghiệm.",
-      "Ai tạo ra bạn?": "Tôi được tạo bởi DQĐ.",
-      "Bạn có thể làm gì?": "Tôi có thể hỗ trợ được bạn về một vài thứ đơn giản.",
+      "what is your name?": "I am SimpleBot.",
+      "who created you?": "I was created by Snoopy.",
+      "what can you do?": "I can answer simple questions and chat with you.",
       "how are you?": "I’m just code, but I’m doing great 😄!"
     };
 
@@ -55,7 +55,7 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
+            "Authorization": "Bearer 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"
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
@@ -85,4 +85,3 @@
   </script>
 </body>
 </html>
-
