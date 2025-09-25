@@ -4,32 +4,145 @@
   <meta charset="UTF-8">
   <title>Chatbot tiếng Việt</title>
   <style>
-    body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding: 30px; }
-    .chat-container { width: 350px; }
-    .chatbox { height: 400px; border: 1px solid #ccc; border-radius: 10px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #f9f9f9; }
-    .message { margin: 5px 0; padding: 5px 8px; border-radius: 5px; max-width: 80%; }
-    .user { background: #d0e7ff; align-self: flex-end; }
-    .bot { background: #d4fcd4; align-self: flex-start; }
-    .input-row { display: flex; }
-    input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
-    button { margin-left: 5px; padding: 8px 12px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #eef2f7;
+    }
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .chatbox {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f9fafc;
+    }
+    .message {
+      display: flex;
+      align-items: flex-end;
+      max-width: 80%;
+    }
+    .bot {
+      align-self: flex-start;
+    }
+    .user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 20px;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+    .bot .bubble {
+      background: #e1f0ff;
+      color: #333;
+      border-bottom-left-radius: 5px;
+    }
+    .user .bubble {
+      background: #007bff;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin: 0 6px;
+    }
+    .input-row {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 10px;
+      background: #fff;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+      font-size: 14px;
+    }
+    button {
+      margin-left: 8px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 20px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    /* Hiệu ứng typing */
+    .typing-dots {
+      display: inline-block;
+      width: 30px;
+      text-align: left;
+    }
+    .typing-dots span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 2px;
+      background: #555;
+      border-radius: 50%;
+      animation: blink 1.4s infinite both;
+    }
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
   </style>
 </head>
 <body>
   <div class="chat-container">
-    <h3>Chatbot tiếng Việt</h3>
+    <div class="header">🤖 Chatbot tiếng Việt</div>
     <div id="chatbox" class="chatbox"></div>
     <div class="input-row">
-      <input type="text" id="userInput" placeholder="Nhập tin nhắn..." />
+      <input type="text" id="userInput" placeholder="Nhập tin nhắn và nhấn Enter..." />
       <button onclick="sendMessage()">Gửi</button>
     </div>
   </div>
 
   <script>
     const chatbox = document.getElementById('chatbox');
+    const input = document.getElementById('userInput');
+    let typingMsg = null;
 
-    // 🔹 FAQ với danh sách từ khóa
     const faqKeywords = [
       { keywords: ["bạn tên gì", "bạn là ai", "tên của bạn"], answer: "Mình là SimpleBot." },
       { keywords: ["ai tạo", "ai làm ra", "người phát triển"], answer: "Mình được tạo bởi Snoopy." },
@@ -51,28 +164,30 @@
     }
 
     async function sendMessage() {
-      const input = document.getElementById('userInput');
       const userText = input.value.trim();
       if (!userText) return;
 
       addMessage('user', userText);
       input.value = '';
 
-      // Check trong FAQ trước
+      // Thêm typing indicator
+      typingMsg = addTyping();
+
       const answer = findFAQ(userText);
       if (answer) {
-        addMessage('bot', answer);
+        setTimeout(() => { // delay cho giống người thật
+          removeTyping();
+          addMessage('bot', answer);
+        }, 800);
         return;
       }
 
-      // Nếu không có trong FAQ → gọi OpenAI
-      addMessage('bot', "🤔 Đang suy nghĩ...");
       try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer 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" // 👈 dán API key của bạn vào đây
+            "Authorization": "Bearer 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" // 👈 dán API key
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
@@ -85,28 +200,68 @@
 
         const data = await response.json();
         const reply = data.choices?.[0]?.message?.content || "Xin lỗi, mình chưa có câu trả lời.";
-        replaceLastBotMessage(reply);
+        removeTyping();
+        addMessage("bot", reply);
       } catch (err) {
-        replaceLastBotMessage("Lỗi: " + err.message);
+        removeTyping();
+        addMessage("bot", "Lỗi: " + err.message);
       }
     }
 
     function addMessage(sender, text) {
       const msg = document.createElement('div');
       msg.className = 'message ' + sender;
-      msg.textContent = (sender === 'user' ? 'Bạn: ' : 'Bot: ') + text;
+
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.src = sender === 'user' ? 
+        "https://i.pravatar.cc/32?img=3" : 
+        "https://i.pravatar.cc/32?img=5";
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+
+      msg.appendChild(avatar);
+      msg.appendChild(bubble);
       chatbox.appendChild(msg);
       chatbox.scrollTop = chatbox.scrollHeight;
+      return msg;
     }
 
-    function replaceLastBotMessage(newText) {
-      const msgs = chatbox.getElementsByClassName("bot");
-      if (msgs.length > 0) {
-        msgs[msgs.length - 1].textContent = "Bot: " + newText;
-      } else {
-        addMessage("bot", newText);
+    function addTyping() {
+      const msg = document.createElement('div');
+      msg.className = 'message bot';
+
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.src = "https://i.pravatar.cc/32?img=5";
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+      msg.appendChild(avatar);
+      msg.appendChild(bubble);
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+      return msg;
+    }
+
+    function removeTyping() {
+      if (typingMsg) {
+        chatbox.removeChild(typingMsg);
+        typingMsg = null;
       }
     }
+
+    // 🔹 Enter để gửi
+    input.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
   </script>
 </body>
 </html>
